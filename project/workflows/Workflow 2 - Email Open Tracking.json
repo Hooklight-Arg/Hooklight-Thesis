@@ -1,0 +1,104 @@
+{
+  "name": "Workflow 2 - Email Open Tracking",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "open",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "39a8bb6f-a3fe-4a75-aa74-554c846dc859",
+      "name": "Webhook",
+      "webhookId": "88513e95-d379-451c-8aeb-7127b52f08ab"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO events (\n  user_id,\n  campaign_id,\n  event_type,\n  event_time,\n  ip,\n  user_agent,\n  country\n)\nVALUES (\n  '{{ $json.query.uid }}',\n  '{{ $json.query.cid }}',\n  'open',\n  NOW() AT TIME ZONE 'America/Argentina/Buenos_Aires',\n  '{{ $json.headers[\"cf-connecting-ip\"] || \"\" }}',\n  '{{ $json.headers[\"user-agent\"] || \"\" }}',\n  '{{ $json.headers[\"cf-ipcountry\"] || \"\" }}'\n);",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        208,
+        0
+      ],
+      "id": "6b4eb8e4-82ec-4dea-8219-2b9fb4a0b056",
+      "name": "Execute a SQL query",
+      "credentials": {
+        "postgres": {
+          "id": "DWD2gO6TUKWYVtJd",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.success }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        416,
+        0
+      ],
+      "id": "ec61e43e-d38d-486c-af8f-767b31beb829",
+      "name": "Respond to Webhook"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "e0bf3515-46a9-44c0-b496-fa851cb273d4",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "512f1b25e6107beedf5aa4a44fded5de9af8071d22a37f48a67d3cff88b7cc17"
+  },
+  "id": "6pdYRBMUzVTeGPBu",
+  "tags": [
+    {
+      "updatedAt": "2026-03-18T13:48:46.207Z",
+      "createdAt": "2026-03-18T13:48:46.207Z",
+      "id": "LadjWhgUxsPU05bW",
+      "name": "HOOKLIGHT"
+    }
+  ]
+}

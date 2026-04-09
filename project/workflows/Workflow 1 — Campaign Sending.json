@@ -1,0 +1,171 @@
+{
+  "name": "Workflow 1 — Campaign Sending",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        192
+      ],
+      "id": "3d1298aa-ccac-403e-b46f-b7b47177f56f"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.consent }}",
+              "value2": "true"
+            }
+          ]
+        }
+      },
+      "name": "IF Consent",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        352,
+        192
+      ],
+      "id": "8718c518-84d9-40df-b9d3-a83715ba7f33"
+    },
+    {
+      "parameters": {
+        "fromEmail": "Hooklight <postmaster@sandboxe38152d54b114928b3c2f4bb24b490ce.mailgun.org>",
+        "toEmail": "={{ $json.email }}",
+        "subject": "Actualización de seguridad del Campus Virtual",
+        "html": "=<html>\n<head>\n  <meta charset=\"UTF-8\">\n  <title>Actualización de seguridad del Campus Virtual</title>\n</head>\n<body style=\"font-family: Arial, sans-serif; background:#f5f5f5; padding:30px; color:#222;\">\n  <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"max-width:700px; margin:auto; background:#ffffff; border-radius:10px; padding:30px;\">\n    <tr>\n      <td>\n        <p style=\"margin-top:0;\">\n          <img src=\"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS6K7dbod3sR5XjBX26x57wI9wi8IIkZ4eviw&s\" width=\"120\" alt=\"Logo institucional\">\n          <img src=\"https://www.hooklight.org/webhook/open?uid={{ encodeURIComponent($json.user_id) }}&cid={{ encodeURIComponent($json.campaign_id) }}\" width=\"1\" height=\"1\" style=\"display:none;\" alt=\"\">\n        </p>\n\n        <h2 style=\"color:#b22222; margin-bottom:20px;\">Actualización de seguridad del Campus Virtual</h2>\n\n        <p>Estimado/a <strong>{{$json.name}}</strong>,</p>\n\n        <p>\n          Detectamos un intento de acceso inusual asociado a tu cuenta institucional\n          del Campus Virtual. Como medida preventiva, se requiere una verificación de identidad.\n        </p>\n\n        <p>\n          Para evitar restricciones temporales sobre tu acceso, te solicitamos completar\n          la validación desde el siguiente enlace:\n        </p>\n\n        <p style=\"margin:30px 0;\">\n          <a href=\"https://www.hooklight.org/webhook/phishing-click?uid={{ encodeURIComponent($json.user_id) }}&cid={{ encodeURIComponent($json.campaign_id) }}\"\n             style=\"background:#b22222; color:#ffffff; text-decoration:none; padding:14px 22px; border-radius:8px; font-weight:bold; display:inline-block;\">\n            Validar cuenta\n          </a>\n        </p>\n\n        <p>\n          Si ya realizaste esta verificación recientemente, podés ignorar este mensaje.\n        </p>\n\n        <p>\n          Atentamente,<br>\n          <strong>Dirección de Sistemas</strong><br>\n          Universidad Tecnológica Nacional\n        </p>\n\n        <hr style=\"border:none; border-top:1px solid #ddd; margin:30px 0;\">\n\n        <p style=\"font-size:12px; color:#666; margin-bottom:0;\">\n          Este correo fue generado automáticamente por el sistema institucional.\n        </p>\n      </td>\n    </tr>\n  </table>\n</body>\n</html>"
+      },
+      "type": "n8n-nodes-base.mailgun",
+      "typeVersion": 1,
+      "position": [
+        592,
+        176
+      ],
+      "id": "d21b176b-2691-4551-98eb-568d0a027cd8",
+      "name": "Mailgun",
+      "credentials": {
+        "mailgunApi": {
+          "id": "xLPVFF4JgAZRyYsn",
+          "name": "Mailgun account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "19wAEFFFoNADMuCgV8_am2Dr7Gcchw7A0lb9xzJEiWEo",
+          "mode": "list",
+          "cachedResultName": "participants",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/19wAEFFFoNADMuCgV8_am2Dr7Gcchw7A0lb9xzJEiWEo/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Hoja 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/19wAEFFFoNADMuCgV8_am2Dr7Gcchw7A0lb9xzJEiWEo/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -48,
+        192
+      ],
+      "id": "992358ea-9001-459b-9011-30d1f97f12af",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "seAvCBgQ0Anr2R2p",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "function uuidv4() {\n  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {\n    const r = Math.random() * 16 | 0;\n    const v = c === 'x' ? r : (r & 0x3 | 0x8);\n    return v.toString(16);\n  });\n}\n\nreturn items.map(item => {\n  return {\n    json: {\n      ...item.json,\n      user_id: uuidv4(),\n      campaign_id: 'camp01'\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        160,
+        192
+      ],
+      "id": "efab1bfd-0ae3-4e22-aa8a-4ac6d6c32c80",
+      "name": "Code in JavaScript"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Consent": {
+      "main": [
+        [
+          {
+            "node": "Mailgun",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "IF Consent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "039f8b4b-eadd-4857-9f71-17ff315f9e26",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "512f1b25e6107beedf5aa4a44fded5de9af8071d22a37f48a67d3cff88b7cc17"
+  },
+  "id": "W6fWZjie1Z05NWHM",
+  "tags": [
+    {
+      "updatedAt": "2026-03-18T13:48:46.207Z",
+      "createdAt": "2026-03-18T13:48:46.207Z",
+      "id": "LadjWhgUxsPU05bW",
+      "name": "HOOKLIGHT"
+    }
+  ]
+}
