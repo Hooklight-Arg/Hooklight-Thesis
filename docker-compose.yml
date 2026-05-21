@@ -95,6 +95,12 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      #############################################
+      GF_AUTH_ANONYMOUS_ENABLED: "true"  # Activa el acceso sin login. Cualquiera puede entrar
+      GF_AUTH_ANONYMOUS_ORG_NAME: "Main Org." # Define a qué organización de Grafana entra ese usuario anónimo
+      GF_AUTH_ANONYMOUS_ORG_ROLE: "Viewer" # Rol del usuario anónimo (solo ver (sin editar))
+      GF_USERS_VIEWERS_CAN_EDIT: "false"
+
     depends_on:
       postgres:
         condition: service_healthy
