@@ -7,10 +7,12 @@
   - [2.1 `schema/`](#21-schema)
   - [2.2 `queries/`](#22-queries)
   - [2.3 `views/`](#23-views)
+  - [2.4 `demo/`](#24-demo)
 - [3. Modelo de datos](#3-modelo-de-datos)
   - [3.1 `participants`](#31-participants)
   - [3.2 `campaigns`](#32-campaigns)
   - [3.3 `events`](#33-events)
+  - [3.4 `mendoza_departments_geo`](#34-mendoza_departments_geo)
 - [4. Relación entre tablas](#4-relación-entre-tablas)
 - [5. Orden recomendado de ejecución](#5-orden-recomendado-de-ejecución)
 - [6. Uso recomendado](#6-uso-recomendado)
@@ -28,11 +30,16 @@
   - [11.7 `007_user_agent_distribution.sql`](#117-007_user_agent_distributionsql)
   - [11.8 `008_events_timeline.sql`](#118-008_events_timelinesql)
   - [11.9 `009_detailed_events_with_participants.sql`](#119-009_detailed_events_with_participantssql)
+  - [11.10 `010_funnel_global.sql`](#1110-010_funnel_globalsql)
+  - [11.11 `011_mendoza_department_distribution.sql`](#1111-011_mendoza_department_distributionsql)
+  - [11.12 `012_seed_mendoza_departments_geo.sql`](#1112-012_seed_mendoza_departments_geosql)
 - [12. Explicación de las views](#12-explicación-de-las-views)
   - [12.1 `001_create_campaign_metrics_view.sql`](#121-001_create_campaign_metrics_viewsql)
   - [12.2 `002_create_campaign_unique_metrics_view.sql`](#122-002_create_campaign_unique_metrics_viewsql)
   - [12.3 `003_create_country_distribution_view.sql`](#123-003_create_country_distribution_viewsql)
   - [12.4 `004_create_browser_distribution_view.sql`](#124-004_create_browser_distribution_viewsql)
+  - [12.5 `005_create_mendoza_department_distribution_view.sql`](#125-005_create_mendoza_department_distribution_viewsql)
+  - [12.6 `006_create_event_facts_view.sql`](#126-006_create_event_facts_viewsql)
 
 ---
 
@@ -61,18 +68,17 @@ Se utiliza para:
 - crear tablas nuevas
 - modificar tablas existentes
 - agregar columnas o constraints
-- cargar datos iniciales mínimos
+- crear índices de performance
 
 ### 2.2 `queries/`
 
 Contiene consultas SQL orientadas al análisis y obtención de métricas.
 
 Se utiliza para:
-- contar eventos
-- calcular aperturas y clics
-- medir vulnerabilidad
-- obtener distribuciones por país o navegador
-- generar evidencia para el informe
+- medir el embudo `sent -> open -> click`
+- calcular vulnerabilidad con usuarios únicos
+- obtener distribuciones por país, navegador y departamento
+- generar evidencia para el informe y dashboards
 
 ### 2.3 `views/`
 
@@ -84,13 +90,22 @@ Se utiliza para:
 - evitar reescribir consultas complejas
 - servir de base para dashboards o reportes
 
+### 2.4 `demo/`
+
+Contiene scripts auxiliares para demos controladas.
+
+Se utiliza para:
+- generar backup antes de una demo
+- resetear tablas transaccionales (`events`, `campaigns`, `participants`)
+- sembrar datos sintéticos consistentes para visualización en Grafana
+
 [↑ Volver al índice](#índice-interactivo)
 
 ---
 
 ## 3. Modelo de datos
 
-El sistema se basa en un modelo relacional compuesto por tres entidades principales:
+El sistema se basa en un modelo relacional compuesto por tres entidades principales y una tabla de referencia geográfica.
 
 ### 3.1 `participants`
 
@@ -101,6 +116,8 @@ Campos principales:
 - `name`: nombre
 - `email`: correo electrónico
 - `consent`: consentimiento de participación
+- `province`: provincia declarada
+- `department`: departamento declarado
 
 ### 3.2 `campaigns`
 
@@ -111,6 +128,8 @@ Campos principales:
 - `name`: nombre legible
 - `description`: descripción
 - `is_active`: estado de la campaña
+- `start_date`: inicio planificado
+- `end_date`: fin planificado
 
 ### 3.3 `events`
 
@@ -120,11 +139,20 @@ Campos principales:
 - `id`: identificador interno autoincremental
 - `user_id`: referencia al participante
 - `campaign_id`: referencia a la campaña
-- `event_type`: tipo de evento (`open` o `click`)
+- `event_type`: tipo de evento (`sent`, `open` o `click`)
 - `event_time`: fecha y hora del evento
 - `ip`: IP capturada por el webhook
 - `user_agent`: cliente/navegador
 - `country`: país detectado por Cloudflare
+
+### 3.4 `mendoza_departments_geo`
+
+Tabla de referencia para mapas por coordenadas.
+
+Campos principales:
+- `department`: nombre del departamento (clave primaria)
+- `lat`: latitud del centroide
+- `lon`: longitud del centroide
 
 [↑ Volver al índice](#índice-interactivo)
 
@@ -135,12 +163,14 @@ Campos principales:
 - Un participante puede generar múltiples eventos.
 - Una campaña puede tener múltiples eventos.
 - Cada evento pertenece, idealmente, a un participante y a una campaña.
+- La tabla `mendoza_departments_geo` se relaciona lógicamente con `participants.department` para análisis geográficos.
 
 Esto permite separar correctamente:
 
 - quién recibió la campaña
 - a qué campaña pertenece el evento
 - qué tipo de interacción ocurrió
+- dónde se concentra la actividad (a nivel de departamento)
 
 [↑ Volver al índice](#índice-interactivo)
 
@@ -148,27 +178,35 @@ Esto permite separar correctamente:
 
 ## 5. Orden recomendado de ejecución
 
-### 1. Crear tablas principales
+### 1. Crear tablas base
 Ejecutar en este orden:
 
 1. `schema/001_create_participants.sql`
 2. `schema/002_create_campaigns.sql`
 3. `schema/003_create_events.sql`
 
-### 2. Adaptar tablas existentes
-Si la tabla `events` ya existía con una estructura anterior, ejecutar:
+### 2. Adaptar entornos existentes
+Si la base ya existía con una versión anterior:
 
 4. `schema/004_alter_events_add_tracking_metadata.sql`
+5. `schema/005_allow_sent_event_type.sql`
+6. `schema/006_alter_campaigns_add_schedule_fields.sql`
+7. `schema/007_alter_participants_add_name_consent.sql`
+8. `schema/008_alter_participants_add_location_fields.sql`
 
-### 3. Cargar campaña inicial
-Opcional:
+### 3. Preparar soporte geográfico
 
-5. `schema/005_seed_campaigns.sql`
+9. `schema/009_create_mendoza_departments_geo.sql`
+10. `queries/012_seed_mendoza_departments_geo.sql`
 
-### 4. Crear vistas analíticas
+### 4. Optimizar para dashboards
+
+11. `schema/010_add_dashboard_performance_indexes.sql`
+
+### 5. Crear vistas analíticas
 Luego ejecutar los archivos de `views/`.
 
-### 5. Ejecutar consultas analíticas
+### 6. Ejecutar consultas analíticas
 Finalmente, utilizar los archivos de `queries/` en pgAdmin o Query Tool.
 
 [↑ Volver al índice](#índice-interactivo)
@@ -181,6 +219,11 @@ Finalmente, utilizar los archivos de `queries/` en pgAdmin o Query Tool.
 1. Abrir la base de datos `phishing_awareness`
 2. Abrir Query Tool
 3. Copiar y ejecutar el contenido del archivo `.sql`
+
+### Para dashboard / demo
+1. Seguir el orden de ejecución recomendado
+2. Si se necesita una demo limpia, usar `sql/demo/README.md`
+3. Consultar primero las `views/` y luego profundizar con `queries/`
 
 ### En documentación técnica
 Estas consultas pueden ser utilizadas para:
@@ -196,13 +239,13 @@ Estas consultas pueden ser utilizadas para:
 ## 7. Convenciones usadas
 
 ### `IF NOT EXISTS`
-Se usa para evitar errores al reejecutar scripts de creación.
+Se usa para evitar errores al reejecutar scripts de creación de tablas e índices.
 
 ### `CREATE OR REPLACE VIEW`
 Se usa para actualizar vistas sin necesidad de borrarlas manualmente.
 
-### `ON CONFLICT DO NOTHING`
-Se usa para evitar errores en cargas repetidas de datos semilla.
+### `ON CONFLICT ... DO UPDATE`
+Se usa para mantener idempotente la carga de referencia geográfica.
 
 ### `LEFT JOIN`
 Se usa en consultas analíticas para no perder eventos aunque falte una referencia asociada.
@@ -219,6 +262,7 @@ Por lo tanto:
 
 - `participants` representa a los usuarios alcanzados por la campaña
 - `events.user_id` referencia a `participants.id`
+- el embudo principal se mide con tres eventos: `sent`, `open` y `click`
 
 [↑ Volver al índice](#índice-interactivo)
 
@@ -229,7 +273,7 @@ Por lo tanto:
 - normalizar aún más datos de dispositivos o navegadores
 - agregar tabla de ejecuciones de campaña
 - agregar tabla de plantillas de correo
-- crear vistas orientadas a dashboards
+- crear materialized views para paneles de alta carga
 - incorporar métricas temporales más avanzadas
 
 [↑ Volver al índice](#índice-interactivo)
@@ -250,19 +294,12 @@ La organización de estos scripts en archivos versionados permite mejorar la tra
 
 **Qué es:** una consulta de agregación simple.  
 **Qué hace:** cuenta cuántos eventos hay de cada tipo.  
-**Para qué sirve:** permite obtener una visión general rápida del volumen total de aperturas y clics registrados.  
+**Para qué sirve:** permite obtener una visión general rápida del volumen total registrado en el embudo.  
 **Cómo funciona:**
 - `SELECT event_type, COUNT(*) AS total` pide el tipo de evento y su cantidad.
 - `FROM events` consulta la tabla de eventos.
-- `GROUP BY event_type` agrupa por `open` y `click`.
+- `GROUP BY event_type` agrupa por `sent`, `open` y `click`.
 - `ORDER BY event_type` ordena alfabéticamente.
-
-**Ejemplo de resultado:**
-
-| event_type | total |
-|---|---:|
-| click | 5 |
-| open | 21 |
 
 [↑ Volver al índice](#índice-interactivo)
 
@@ -271,23 +308,14 @@ La organización de estos scripts en archivos versionados permite mejorar la tra
 ### 11.2 `002_metrics_by_campaign.sql`
 
 **Qué es:** una consulta analítica por campaña.  
-**Qué hace:** calcula aperturas, clics y porcentaje de clics sobre aperturas para cada campaña.  
+**Qué hace:** calcula enviados, aperturas, clics, open rate y click-to-open rate para cada campaña.  
 **Para qué sirve:** permite comparar el rendimiento general de distintas campañas simuladas.  
 **Cómo funciona:**
-- `campaign_id` agrupa resultados por campaña.
-- `COUNT(*) FILTER (WHERE event_type = 'open')` cuenta solo aperturas.
-- `COUNT(*) FILTER (WHERE event_type = 'click')` cuenta solo clics.
-- `ROUND(..., 2)` redondea el porcentaje a dos decimales.
+- `COUNT(*) FILTER (WHERE event_type = 'sent')` cuenta enviados.
+- `COUNT(*) FILTER (WHERE event_type = 'open')` cuenta aperturas.
+- `COUNT(*) FILTER (WHERE event_type = 'click')` cuenta clics.
+- `ROUND(..., 2)` redondea porcentajes.
 - `NULLIF(..., 0)` evita división por cero.
-
-**Ejemplo de resultado:**
-
-| campaign_id | opens | clicks | click_rate_percent |
-|---|---:|---:|---:|
-| camp01 | 20 | 4 | 20.00 |
-| camp02 | 15 | 6 | 40.00 |
-
-**Aclaración:** esta métrica puede estar sesgada si los `open` están inflados por la precarga automática de imágenes.
 
 [↑ Volver al índice](#índice-interactivo)
 
@@ -303,14 +331,6 @@ La organización de estos scripts en archivos versionados permite mejorar la tra
 - `COUNT(DISTINCT user_id)` cuenta usuarios únicos.
 - `GROUP BY campaign_id` separa el resultado por campaña.
 
-**Ejemplo de resultado:**
-
-| campaign_id | usuarios_que_hicieron_click |
-|---|---:|
-| camp01 | 3 |
-
-Si una misma persona hizo dos clics, cuenta una sola vez.
-
 [↑ Volver al índice](#índice-interactivo)
 
 ---
@@ -325,36 +345,19 @@ Si una misma persona hizo dos clics, cuenta una sola vez.
 - usa `COUNT(DISTINCT user_id)` para no duplicar usuarios
 - agrupa por campaña
 
-**Ejemplo de resultado:**
-
-| campaign_id | usuarios_que_abrieron |
-|---|---:|
-| camp01 | 8 |
-
-Si una persona abrió el mismo correo varias veces, cuenta una sola vez.
-
 [↑ Volver al índice](#índice-interactivo)
 
 ---
 
 ### 11.5 `005_real_vulnerability_rate.sql`
 
-**Qué es:** la métrica más sólida del conjunto.  
-**Qué hace:** calcula la tasa de vulnerabilidad real por campaña usando usuarios únicos.  
-**Para qué sirve:** estima cuántos usuarios que abrieron el correo terminaron haciendo click, evitando el sesgo de eventos duplicados.  
+**Qué es:** una consulta de embudo único por campaña.  
+**Qué hace:** calcula enviados únicos, aperturas únicas, clics únicos, open rate único y tasa de vulnerabilidad.  
+**Para qué sirve:** mide el comportamiento humano con menos sesgo por duplicación de eventos.  
 **Cómo funciona:**
-- `COUNT(DISTINCT CASE WHEN event_type = 'open' THEN user_id END)` cuenta aperturas únicas.
-- `COUNT(DISTINCT CASE WHEN event_type = 'click' THEN user_id END)` cuenta clics únicos.
-- divide clics únicos sobre aperturas únicas.
-- redondea el porcentaje final.
-
-**Ejemplo de resultado:**
-
-| campaign_id | opens_unicos | clicks_unicos | tasa_vulnerabilidad |
-|---|---:|---:|---:|
-| camp01 | 20 | 5 | 25.00 |
-
-**Interpretación:** si la tasa de vulnerabilidad es 25%, significa que 1 de cada 4 usuarios que abrió el correo hizo click.
+- usa `COUNT(DISTINCT CASE WHEN ... THEN user_id END)` por etapa del embudo.
+- calcula `open_rate_unico_percent` como `opens_unicos / sent_unicos`.
+- calcula `tasa_vulnerabilidad` como `clicks_unicos / opens_unicos`.
 
 [↑ Volver al índice](#índice-interactivo)
 
@@ -370,13 +373,6 @@ Si una persona abrió el mismo correo varias veces, cuenta una sola vez.
 - cuenta eventos por cada país
 - ordena de mayor a menor frecuencia
 
-**Ejemplo de resultado:**
-
-| country | total |
-|---|---:|
-| AR | 18 |
-| CL | 2 |
-
 [↑ Volver al índice](#índice-interactivo)
 
 ---
@@ -390,16 +386,7 @@ Si una persona abrió el mismo correo varias veces, cuenta una sola vez.
 - agrupa por `user_agent`
 - cuenta repeticiones
 - ordena de mayor a menor
-- limita a los 10 más frecuentes
-
-**Ejemplo de resultado:**
-
-| user_agent | total |
-|---|---:|
-| Mozilla/5.0 ... Chrome/145... | 7 |
-| GmailImageProxy | 4 |
-
-**Utilidad analítica:** ayuda a justificar por qué algunos `open` pueden estar inflados.
+- limita a los más frecuentes
 
 [↑ Volver al índice](#índice-interactivo)
 
@@ -409,20 +396,11 @@ Si una persona abrió el mismo correo varias veces, cuenta una sola vez.
 
 **Qué es:** una consulta temporal.  
 **Qué hace:** muestra cuántos eventos hubo por fecha y por tipo.  
-**Para qué sirve:** permite visualizar la evolución temporal de aperturas y clics.  
+**Para qué sirve:** permite visualizar la evolución temporal de enviados, aperturas y clics.  
 **Cómo funciona:**
 - `DATE(event_time)` toma solo la fecha
 - agrupa por fecha y tipo de evento
 - cuenta eventos de cada grupo
-
-**Ejemplo de resultado:**
-
-| fecha | event_type | total |
-|---|---|---:|
-| 2026-04-08 | open | 14 |
-| 2026-04-08 | click | 3 |
-
-**Uso típico:** generar gráficos de línea o barras por día.
 
 [↑ Volver al índice](#índice-interactivo)
 
@@ -435,15 +413,51 @@ Si una persona abrió el mismo correo varias veces, cuenta una sola vez.
 **Para qué sirve:** sirve para auditoría, validación manual y evidencia detallada del funcionamiento del sistema.  
 **Cómo funciona:**
 - `FROM events e` toma eventos como tabla principal.
-- `LEFT JOIN participants p ON e.user_id = p.id` agrega nombre y email.
-- `LEFT JOIN campaigns c ON e.campaign_id = c.id` agrega nombre de campaña.
+- `LEFT JOIN participants p ON e.user_id = p.id` agrega datos del participante.
+- `LEFT JOIN campaigns c ON e.campaign_id = c.id` agrega datos de campaña.
 - `ORDER BY e.event_time DESC, e.id DESC` muestra lo más reciente primero.
 
-**Ejemplo de resultado:**
+[↑ Volver al índice](#índice-interactivo)
 
-| id | event_time | event_type | user_id | name | email | campaign_id | campaign_name | ip | country |
-|---|---|---|---|---|---|---|---|---|---|
-| 12 | 2026-04-08 10:42 | click | uuid... | Martina | marti@email.com | camp01 | Campaña inicial | 190... | AR |
+---
+
+### 11.10 `010_funnel_global.sql`
+
+**Qué es:** una consulta de embudo global (usuarios únicos).  
+**Qué hace:** consolida enviados, aperturas y clics únicos de todo el sistema con sus tasas principales.  
+**Para qué sirve:** brinda un KPI ejecutivo rápido sin segmentar por campaña.  
+**Cómo funciona:**
+- calcula `sent_unicos`, `opens_unicos` y `clicks_unicos`.
+- calcula `open_rate_unico_percent` y `click_to_open_unico_percent`.
+- usa `NULLIF` para evitar divisiones por cero.
+
+[↑ Volver al índice](#índice-interactivo)
+
+---
+
+### 11.11 `011_mendoza_department_distribution.sql`
+
+**Qué es:** una consulta geográfica por departamento de Mendoza.  
+**Qué hace:** cuenta eventos totales, eventos por tipo y participantes únicos por departamento.  
+**Para qué sirve:** alimenta paneles territoriales y análisis localizados.  
+**Cómo funciona:**
+- une `events` con `participants`.
+- filtra `p.province ILIKE 'Mendoza'`.
+- normaliza departamentos vacíos a `N/A`.
+- agrupa por departamento.
+
+[↑ Volver al índice](#índice-interactivo)
+
+---
+
+### 11.12 `012_seed_mendoza_departments_geo.sql`
+
+**Qué es:** un script de carga semilla (no analítico).  
+**Qué hace:** inserta y actualiza coordenadas de los departamentos de Mendoza.  
+**Para qué sirve:** habilita mapas en Grafana con `Location mode: Coordinates`.  
+**Cómo funciona:**
+- inserta pares `department + lat + lon`.
+- aplica `ON CONFLICT (department) DO UPDATE` para mantenerlo idempotente.
 
 [↑ Volver al índice](#índice-interactivo)
 
@@ -454,7 +468,7 @@ Si una persona abrió el mismo correo varias veces, cuenta una sola vez.
 ### 12.1 `001_create_campaign_metrics_view.sql`
 
 **Qué es:** una vista con métricas básicas por campaña.  
-**Qué hace:** guarda como vista la lógica de aperturas, clics y click rate.  
+**Qué hace:** encapsula enviados, aperturas, clics, open rate y click-to-open rate.  
 **Para qué sirve:** permite consultar rápidamente métricas sin reescribir la query completa.  
 **Cómo usarla:**
 ```sql
@@ -468,8 +482,8 @@ SELECT * FROM campaign_metrics;
 ### 12.2 `002_create_campaign_unique_metrics_view.sql`
 
 **Qué es:** una vista con métricas únicas por campaña.  
-**Qué hace:** encapsula aperturas únicas, clics únicos y tasa de vulnerabilidad real.  
-**Para qué sirve:** es ideal para reportes académicos y dashboards futuros.  
+**Qué hace:** encapsula enviados únicos, aperturas únicas, clics únicos y tasas únicas.  
+**Para qué sirve:** es ideal para reportes académicos y dashboards ejecutivos.  
 **Cómo usarla:**
 ```sql
 SELECT * FROM campaign_unique_metrics;
@@ -501,6 +515,34 @@ SELECT * FROM event_country_distribution;
 **Cómo usarla:**
 ```sql
 SELECT * FROM event_user_agent_distribution;
+```
+
+[↑ Volver al índice](#índice-interactivo)
+
+---
+
+### 12.5 `005_create_mendoza_department_distribution_view.sql`
+
+**Qué es:** una vista de distribución territorial en Mendoza.  
+**Qué hace:** resume total de eventos, eventos por tipo y participantes únicos por departamento.  
+**Para qué sirve:** simplifica el consumo de datos para paneles geográficos.  
+**Cómo usarla:**
+```sql
+SELECT * FROM mendoza_department_distribution;
+```
+
+[↑ Volver al índice](#índice-interactivo)
+
+---
+
+### 12.6 `006_create_event_facts_view.sql`
+
+**Qué es:** una vista canónica de hechos para dashboards.  
+**Qué hace:** unifica eventos con atributos normalizados de campaña, participante, geografía y navegador.  
+**Para qué sirve:** centraliza la lógica de parsing/filtros para reducir duplicación en paneles.  
+**Cómo usarla:**
+```sql
+SELECT * FROM event_facts;
 ```
 
 [↑ Volver al índice](#índice-interactivo)
