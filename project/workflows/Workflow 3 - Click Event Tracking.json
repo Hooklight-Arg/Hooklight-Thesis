@@ -1,104 +1,110 @@
-{
-  "name": "Workflow 3 - Click Event Tracking",
-  "nodes": [
-    {
-      "parameters": {
-        "path": "phishing-click",
-        "responseMode": "responseNode",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.webhook",
-      "typeVersion": 2.1,
-      "position": [
-        0,
-        0
-      ],
-      "id": "d0c07402-c2f0-4291-80dc-c29de7220545",
-      "name": "Webhook",
-      "webhookId": "a9d3c85e-facf-4cab-aa42-ee7224ec5b91"
-    },
-    {
-      "parameters": {
-        "operation": "executeQuery",
-        "query": "INSERT INTO events (\n  user_id,\n  campaign_id,\n  event_type,\n  event_time,\n  ip,\n  user_agent,\n  country\n)\nVALUES (\n  '{{ $json.query.uid }}',\n  '{{ $json.query.cid }}',\n  'click',\n  NOW() AT TIME ZONE 'America/Argentina/Buenos_Aires',\n  '{{ $json.headers[\"cf-connecting-ip\"] || \"\" }}',\n  '{{ $json.headers[\"user-agent\"] || \"\" }}',\n  '{{ $json.headers[\"cf-ipcountry\"] || \"\" }}'\n);",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.6,
-      "position": [
-        272,
-        0
-      ],
-      "id": "d3313ddb-814d-44a5-89c1-d790adecec5d",
-      "name": "Execute a SQL query",
-      "credentials": {
-        "postgres": {
-          "id": "DWD2gO6TUKWYVtJd",
-          "name": "Postgres account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "respondWith": "text",
-        "responseBody": "<!DOCTYPE html>\n<html lang=\"es\">\n<head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n<title>Hooklight | Micro-Capacitación</title>\n\n<style>\n   \n    :root {\n        --primary-color: #1f3c88;\n        --primary-hover: #163172;\n        --danger-color: #d32f2f;\n        --danger-bg: #ffebee;\n        --danger-border: #ffcdd2;\n        --bg-color: #f4f6f9;\n        --card-bg: #ffffff;\n        --text-main: #2c3e50;\n        --text-muted: #546e7a;\n    }\n\n    body {\n        margin: 0;\n        font-family: system-ui, -apple-system, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif;\n        background-color: var(--bg-color);\n        color: var(--text-main);\n        display: flex;\n        justify-content: center;\n        align-items: center;\n        min-height: 100vh;\n        padding: 20px;\n        box-sizing: border-box;\n    }\n\n    .container {\n        background: var(--card-bg);\n        width: 100%;\n        max-width: 800px;\n        padding: 40px;\n        border-radius: 16px;\n        box-shadow: 0 10px 40px rgba(0,0,0,0.08);\n        border-top: 6px solid var(--danger-color);\n    }\n\n    .header {\n        text-align: center;\n    }\n\n    .logo {\n        height: 50px;\n        margin-bottom: 20px;\n        object-fit: contain;\n    }\n\n    h1 {\n        color: var(--primary-color);\n        margin: 0 0 15px 0;\n        font-size: 28px;\n    }\n\n   \n    .alert {\n        background-color: var(--danger-bg);\n        color: var(--danger-color);\n        border: 1px solid var(--danger-border);\n        padding: 16px;\n        border-radius: 8px;\n        margin: 0 0 30px 0;\n        font-weight: 600;\n        font-size: 18px;\n        text-align: center;\n    }\n\n    .intro-text {\n        text-align: center;\n        margin-bottom: 35px;\n        line-height: 1.6;\n        color: var(--text-muted);\n        font-size: 16px;\n    }\n\n    \n    .info-grid {\n        display: grid;\n        grid-template-columns: 1fr 1fr;\n        gap: 30px;\n        margin-bottom: 30px;\n    }\n\n    \n\n    .info-box {\n        background-color: #f8f9fa;\n        padding: 24px;\n        border-radius: 12px;\n        border: 1px solid #e9ecef;\n    }\n\n    .info-box h3 {\n        color: var(--primary-color);\n        margin-top: 0;\n        margin-bottom: 15px;\n        font-size: 17px;\n        border-bottom: 2px solid #e9ecef;\n        padding-bottom: 10px;\n    }\n\n    ul {\n        padding-left: 20px;\n        margin: 0;\n    }\n\n    li {\n        margin-bottom: 10px;\n        font-size: 14px;\n        line-height: 1.6;\n    }\n\n    .action-section {\n        text-align: center;\n        margin-top: 20px;\n    }\n\n    .button {\n        display: inline-block;\n        padding: 14px 32px;\n        background-color: var(--primary-color);\n        color: #ffffff;\n        text-decoration: none;\n        border-radius: 8px;\n        font-weight: 600;\n        transition: all 0.3s ease;\n        border: none;\n    }\n\n    .button:hover {\n        background-color: var(--primary-hover);\n        transform: translateY(-2px);\n        box-shadow: 0 4px 12px rgba(31, 60, 136, 0.2);\n    }\n\n    .footer {\n        margin-top: 40px;\n        padding-top: 20px;\n        border-top: 1px solid #e9ecef;\n        font-size: 13px;\n        color: #95a5a6;\n        text-align: center;\n        line-height: 1.5;\n    }\n</style>\n</head>\n\n<body>\n\n<div class=\"container\">\n    <div class=\"header\">\n        <img src=\"hooklogo.png\" alt=\"Hooklight Logo\" class=\"logo\">\n        \n        <h1>Simulación de Phishing</h1>\n    </div>\n\n    <div class=\"alert\">\n        🎣 ¡Te pescamos! Has interactuado con un correo simulado.\n    </div>\n\n    <div class=\"intro-text\">\n        <p>Este ejercicio fue realizado por <strong>Hooklight</strong> para fortalecer la cultura de ciberseguridad. El objetivo no es sancionar, sino ayudarte a identificar señales de riesgo y mejorar la detección de correos fraudulentos.</p>\n    </div>\n\n    <div class=\"info-grid\">\n        <div class=\"info-box\">\n            <h3>🔍 Señales de alerta</h3>\n            <ul>\n                <li><strong>Remitente sospechoso:</strong> Dirección de correo ligeramente alterada.</li>\n                <li><strong>Urgencia injustificada:</strong> Presión para actuar inmediatamente o bajo amenaza.</li>\n                <li><strong>Enlaces falsos:</strong> URLs que no coinciden con el dominio oficial de la institución.</li>\n                <li><strong>Solicitudes inusuales:</strong> Pedido de credenciales o información confidencial.</li>\n            </ul>\n        </div>\n\n        <div class=\"info-box\">\n            <h3>🛡️ Buenas prácticas</h3>\n            <ul>\n                <li><strong>Verificar el origen:</strong> Confirmar siempre la dirección real del remitente.</li>\n                <li><strong>Inspeccionar enlaces:</strong> Pasar el cursor sobre los links antes de hacer clic.</li>\n                <li><strong>Cero credenciales:</strong> Nunca ingresar contraseñas desde enlaces recibidos por correo.</li>\n                <li><strong>Reportar:</strong> Avisar al equipo de sistemas sobre correos sospechosos.</li>\n            </ul>\n        </div>\n    </div>\n\n    <div class=\"action-section\">\n        <a href=\"#\" class=\"button\">Entendido</a>\n    </div>\n\n    <div class=\"footer\">\n        Proyecto académico de simulación automatizada de phishing<br>\n        Hooklight © 2026\n    </div>\n</div>\n\n</body>\n</html>",
-        "options": {
-          "responseCode": 200
-        }
-      },
-      "type": "n8n-nodes-base.respondToWebhook",
-      "typeVersion": 1.5,
-      "position": [
-        544,
-        0
-      ],
-      "id": "ff3ff48e-e400-48ce-9ec3-eeeb5ed55efa",
-      "name": "Respond to Webhook"
-    }
-  ],
-  "pinData": {},
-  "connections": {
-    "Webhook": {
-      "main": [
-        [
-          {
-            "node": "Execute a SQL query",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Execute a SQL query": {
-      "main": [
-        [
-          {
-            "node": "Respond to Webhook",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    }
-  },
-  "active": true,
-  "settings": {
-    "executionOrder": "v1",
-    "binaryMode": "separate",
-    "availableInMCP": false
-  },
-  "versionId": "ec1bfba0-81db-46ee-aae1-35a67fab1f26",
-  "meta": {
-    "templateCredsSetupCompleted": true,
-    "instanceId": "512f1b25e6107beedf5aa4a44fded5de9af8071d22a37f48a67d3cff88b7cc17"
-  },
-  "id": "LDa6WdINuQpjaGIj",
-  "tags": [
-    {
-      "updatedAt": "2026-03-18T13:48:46.207Z",
-      "createdAt": "2026-03-18T13:48:46.207Z",
-      "id": "LadjWhgUxsPU05bW",
-      "name": "HOOKLIGHT"
-    }
-  ]
+﻿{
+    "name":  "Workflow 3 - Click Event Tracking",
+    "nodes":  [
+                  {
+                      "parameters":  {
+                                         "path":  "phishing-click",
+                                         "responseMode":  "responseNode",
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "type":  "n8n-nodes-base.webhook",
+                      "typeVersion":  2.1,
+                      "position":  [
+                                       0,
+                                       0
+                                   ],
+                      "id":  "d0c07402-c2f0-4291-80dc-c29de7220545",
+                      "name":  "Webhook",
+                      "webhookId":  "a9d3c85e-facf-4cab-aa42-ee7224ec5b91"
+                  },
+                  {
+                      "parameters":  {
+                                         "operation":  "executeQuery",
+                                         "query":  "INSERT INTO events (\n  user_id,\n  campaign_id,\n  event_type,\n  event_time,\n  ip,\n  user_agent,\n  country\n)\nVALUES (\n  \u0027{{ $json.query.uid }}\u0027,\n  \u0027{{ $json.query.cid }}\u0027,\n  \u0027click\u0027,\n  NOW() AT TIME ZONE \u0027America/Argentina/Buenos_Aires\u0027,\n  \u0027{{ $json.headers[\"cf-connecting-ip\"] || \"\" }}\u0027,\n  \u0027{{ $json.headers[\"user-agent\"] || \"\" }}\u0027,\n  \u0027{{ $json.headers[\"cf-ipcountry\"] || \"\" }}\u0027\n);",
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "type":  "n8n-nodes-base.postgres",
+                      "typeVersion":  2.6,
+                      "position":  [
+                                       272,
+                                       0
+                                   ],
+                      "id":  "d3313ddb-814d-44a5-89c1-d790adecec5d",
+                      "name":  "Execute a SQL query",
+                      "credentials":  {
+                                          "postgres":  {
+                                                           "id":  "DWD2gO6TUKWYVtJd",
+                                                           "name":  "Postgres account"
+                                                       }
+                                      }
+                  },
+                  {
+                      "parameters":  {
+                                         "respondWith":  "text",
+                                         "responseBody":  "\u003c!DOCTYPE html\u003e\n\u003chtml lang=\"es\"\u003e\n\u003chead\u003e\n\u003cmeta charset=\"UTF-8\"\u003e\n\u003cmeta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"\u003e\n\u003ctitle\u003eHooklight | Capacitacion Anti-Phishing\u003c/title\u003e\n\u003clink rel=\"preconnect\" href=\"https://fonts.googleapis.com\"\u003e\n\u003clink rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin\u003e\n\u003clink href=\"https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800\u0026display=swap\" rel=\"stylesheet\"\u003e\n\u003cstyle\u003e\n    :root {\n        --brand-900: #0f2748;\n        --brand-700: #1e4b84;\n        --accent-500: #f4a261;\n        --danger-700: #b42318;\n        --danger-100: #ffeceb;\n        --ok-50: #eef7ff;\n        --text-main: #11243f;\n        --text-soft: #4b5d78;\n        --card: #ffffff;\n    }\n\n    * { box-sizing: border-box; }\n\n    body {\n        margin: 0;\n        font-family: \"Manrope\", \"Segoe UI\", sans-serif;\n        color: var(--text-main);\n        background: radial-gradient(circle at 20% 0%, #f7fbff 0%, #eef4ff 45%, #e9f1ff 100%);\n        min-height: 100vh;\n        display: flex;\n        align-items: center;\n        justify-content: center;\n        padding: 24px;\n    }\n\n    .container {\n        width: 100%;\n        max-width: 920px;\n        background: var(--card);\n        border-radius: 20px;\n        border: 1px solid #d9e5f8;\n        box-shadow: 0 22px 50px rgba(16, 44, 83, 0.14);\n        overflow: hidden;\n    }\n\n    .top-band {\n        padding: 18px 28px;\n        background: linear-gradient(90deg, #132a4a 0%, #204f8c 100%);\n        color: #f8fcff;\n        font-size: 14px;\n        letter-spacing: 0.2px;\n        text-align: center;\n    }\n\n    .content {\n        padding: 34px;\n    }\n\n    .header {\n        text-align: center;\n        margin-bottom: 20px;\n    }\n\n    .logo {\n        height: 52px;\n        object-fit: contain;\n        margin-bottom: 14px;\n    }\n\n    h1 {\n        margin: 0;\n        font-size: 34px;\n        line-height: 1.15;\n        color: var(--brand-900);\n    }\n\n    .alert {\n        margin: 18px auto 22px;\n        padding: 16px 18px;\n        border-radius: 12px;\n        border: 1px solid #fecaca;\n        background: var(--danger-100);\n        color: var(--danger-700);\n        font-weight: 700;\n        text-align: center;\n    }\n\n    .intro {\n        margin: 0 auto 26px;\n        max-width: 760px;\n        text-align: center;\n        color: var(--text-soft);\n        font-size: 17px;\n        line-height: 1.7;\n    }\n\n    .sales-highlight {\n        margin: 0 auto 28px;\n        max-width: 760px;\n        background: linear-gradient(90deg, #0f2748 0%, #1d4d86 100%);\n        color: #f7fbff;\n        border-radius: 14px;\n        padding: 18px 20px;\n        text-align: center;\n        font-weight: 600;\n    }\n\n    .grid {\n        display: grid;\n        grid-template-columns: repeat(2, minmax(0, 1fr));\n        gap: 18px;\n        margin-bottom: 26px;\n    }\n\n    .card {\n        background: var(--ok-50);\n        border: 1px solid #d7e8ff;\n        border-radius: 14px;\n        padding: 20px;\n    }\n\n    .card h3 {\n        margin: 0 0 12px;\n        color: var(--brand-900);\n        font-size: 20px;\n    }\n\n    ul {\n        margin: 0;\n        padding-left: 18px;\n        color: #23395b;\n        line-height: 1.7;\n        font-size: 15px;\n    }\n\n    .cta {\n        display: flex;\n        gap: 12px;\n        justify-content: center;\n        flex-wrap: wrap;\n        margin-top: 8px;\n    }\n\n    .btn {\n        display: inline-flex;\n        align-items: center;\n        justify-content: center;\n        text-decoration: none;\n        border-radius: 10px;\n        padding: 14px 24px;\n        font-weight: 700;\n        transition: transform 0.2s ease, box-shadow 0.2s ease;\n    }\n\n    .btn-primary {\n        background: #f4a261;\n        color: #1d1a17;\n        box-shadow: 0 10px 22px rgba(244, 162, 97, 0.38);\n    }\n\n    .btn-secondary {\n        background: #e7effd;\n        color: #12305a;\n        border: 1px solid #ccdcf8;\n    }\n\n    .btn:hover {\n        transform: translateY(-2px);\n    }\n\n    .footer {\n        margin-top: 22px;\n        text-align: center;\n        font-size: 13px;\n        color: #70829c;\n    }\n\n    @media (max-width: 760px) {\n        .content { padding: 22px; }\n        h1 { font-size: 28px; }\n        .grid { grid-template-columns: 1fr; }\n    }\n\u003c/style\u003e\n\u003c/head\u003e\n\u003cbody\u003e\n\u003cdiv class=\"container\"\u003e\n    \u003cdiv class=\"top-band\"\u003eSimulacion completada. Ahora es momento de convertir el riesgo en prevencion real.\u003c/div\u003e\n    \u003cdiv class=\"content\"\u003e\n        \u003cdiv class=\"header\"\u003e\n            \u003cimg src=\"hooklogo.png\" alt=\"Hooklight Logo\" class=\"logo\"\u003e\n            \u003ch1\u003eTu equipo puede evitar el proximo incidente\u003c/h1\u003e\n        \u003c/div\u003e\n\n        \u003cdiv class=\"alert\"\u003eDetectamos un clic en una simulacion de phishing. No hay sancion: hay oportunidad de mejora.\u003c/div\u003e\n\n        \u003cp class=\"intro\"\u003e\n            En Hooklight ayudamos a empresas a reducir errores humanos con entrenamientos practicos, medibles y orientados a resultados.\n            Cada persona que aprende a detectar un engano digital protege datos, dinero y reputacion de toda la organizacion.\n        \u003c/p\u003e\n\n        \u003cdiv class=\"sales-highlight\"\u003e\n            Programa recomendado: Capacitacion Anti-Phishing para colaboradores, con modulos breves, evaluaciones y reportes para RRHH, IT y Compliance.\n        \u003c/div\u003e\n\n        \u003cdiv class=\"grid\"\u003e\n            \u003cdiv class=\"card\"\u003e\n                \u003ch3\u003eRiesgos que evitamos\u003c/h3\u003e\n                \u003cul\u003e\n                    \u003cli\u003eRobo de credenciales y acceso no autorizado.\u003c/li\u003e\n                    \u003cli\u003eFraude por suplantacion de identidad (BEC).\u003c/li\u003e\n                    \u003cli\u003eFiltracion de datos sensibles y multas regulatorias.\u003c/li\u003e\n                    \u003cli\u003eInterrupciones operativas por malware o ransomware.\u003c/li\u003e\n                \u003c/ul\u003e\n            \u003c/div\u003e\n            \u003cdiv class=\"card\"\u003e\n                \u003ch3\u003eLo que incluye la capacitacion\u003c/h3\u003e\n                \u003cul\u003e\n                    \u003cli\u003eSimulaciones reales por area y nivel de riesgo.\u003c/li\u003e\n                    \u003cli\u003eMicro-lecciones para respuesta inmediata.\u003c/li\u003e\n                    \u003cli\u003eMetricas de avance por equipos y usuarios.\u003c/li\u003e\n                    \u003cli\u003ePlan de mejora continua con acompanamiento Hooklight.\u003c/li\u003e\n                \u003c/ul\u003e\n            \u003c/div\u003e\n        \u003c/div\u003e\n\n        \u003cdiv class=\"cta\"\u003e\n            \u003ca class=\"btn btn-primary\" href=\"https://www.hooklight.org/webhook/hooklight-capacitacion\" target=\"_blank\" rel=\"noopener noreferrer\"\u003eComprar capacitacion\u003c/a\u003e\n            \u003ca class=\"btn btn-secondary\" href=\"https://www.hooklight.org/webhook/hooklight-capacitacion\" target=\"_blank\" rel=\"noopener noreferrer\"\u003eConocer Hooklight\u003c/a\u003e\n        \u003c/div\u003e\n\n        \u003cdiv class=\"footer\"\u003eHooklight | Cultura de ciberseguridad para empresas - 2026\u003c/div\u003e\n    \u003c/div\u003e\n\u003c/div\u003e\n\u003c/body\u003e\n\u003c/html\u003e",
+                                         "options":  {
+                                                         "responseCode":  200
+                                                     }
+                                     },
+                      "type":  "n8n-nodes-base.respondToWebhook",
+                      "typeVersion":  1.5,
+                      "position":  [
+                                       544,
+                                       0
+                                   ],
+                      "id":  "ff3ff48e-e400-48ce-9ec3-eeeb5ed55efa",
+                      "name":  "Respond to Webhook"
+                  }
+              ],
+    "pinData":  {
+
+                },
+    "connections":  {
+                        "Webhook":  {
+                                        "main":  [
+                                                     [
+                                                         {
+                                                             "node":  "Execute a SQL query",
+                                                             "type":  "main",
+                                                             "index":  0
+                                                         }
+                                                     ]
+                                                 ]
+                                    },
+                        "Execute a SQL query":  {
+                                                    "main":  [
+                                                                 [
+                                                                     {
+                                                                         "node":  "Respond to Webhook",
+                                                                         "type":  "main",
+                                                                         "index":  0
+                                                                     }
+                                                                 ]
+                                                             ]
+                                                }
+                    },
+    "active":  true,
+    "settings":  {
+                     "executionOrder":  "v1",
+                     "binaryMode":  "separate",
+                     "availableInMCP":  false
+                 },
+    "versionId":  "ec1bfba0-81db-46ee-aae1-35a67fab1f26",
+    "meta":  {
+                 "templateCredsSetupCompleted":  true,
+                 "instanceId":  "512f1b25e6107beedf5aa4a44fded5de9af8071d22a37f48a67d3cff88b7cc17"
+             },
+    "id":  "LDa6WdINuQpjaGIj",
+    "tags":  [
+                 {
+                     "updatedAt":  "2026-03-18T13:48:46.207Z",
+                     "createdAt":  "2026-03-18T13:48:46.207Z",
+                     "id":  "LadjWhgUxsPU05bW",
+                     "name":  "HOOKLIGHT"
+                 }
+             ]
 }
