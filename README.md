@@ -2,26 +2,33 @@
 
 ![Hooklight Banner](assets/img/hooklogo.png)
 
-Nos presentamos somos **HookLight**:
-- ⭐ Mestre Francisco
-- ⭐ Molina Martina
-- ⭐ Sponton Giani
+Nos presentamos, somos **HookLight**:
+- Mestre Francisco
+- Molina Martina
+- Sponton Giani
 
+### Simulacion Automatizada de Campanas de Phishing para Concientizacion en Ciberseguridad
 
-### Simulación Automatizada de Campañas de Phishing para Concientización en Ciberseguridad
+HookLight es una plataforma de simulación de phishing orientada a programas de concientización y gestión del riesgo humano. El sistema permite diseñar campañas controladas y éticas, ejecutar envíos a poblaciones definidas y medir la respuesta de los usuarios frente a técnicas de ingeniería social.
 
-Presentamos el tema 2 un Sistema diseñado para simular campañas de phishing de manera controlada y ética, con el objetivo de medir la vulnerabilidad humana frente a ataques de ingeniería social y mejorar la concientización en ciberseguridad. Nuestro sistema permite crear simulaciones de pishing que te permiten capacitar  a tu personal para este tipo de ataque , mediante una base de datos de participantes , se envia un mail malicioso que pone a prueba al usuario , en caso de que el usuario caiga o desestime el mail , el html del correo mediante **webhooks** envia metricas que son analizadas y plasmadas en **Grafana**. Hay más que explicar puedes navegar en nuestro indice de aqui abajo 👇.
+La plataforma se ofrece como un servicio integral para organizaciones que necesitan entrenar a sus equipos y reducir la exposición al fraude digital: planificacion de campañas, ejecución automatizada, trazabilidad de eventos y reportes ejecutivos listos para auditoria.
 
-## 📒 INDICE
-+ ###  [📗 Sobre el Proyecto](docs/proyecto.md)
+HookLight combina automatización operativa con analítica accionable para convertir cada simulación en decisiones concretas: detectar áreas críticas, priorizar capacitaciones y demostrar mejora continua con métricas comparables en el tiempo.
 
-+ ###  [📕 Investigacion sobre pishing](docs/Investigacion.md)
+### [Miranos en YouTube](https://youtu.be/mHmPQnW_4fw?si=xYh-D63_DYmo8Rxp)
 
-+ ###  [📘 Ver Diagrama de Flujo](docs/flujo.md)
+## INDICE
++ ### [Sobre el Proyecto](docs/proyecto.md)
 
-+ ###  [📘 Ver Diagrama de Arquitectura](docs/arquitectura.md)
++ ### [Investigacion sobre pishing](docs/Investigacion.md)
 
-+ ###  [📙 Documento de avances ](docs/INFORME_PRIMER_AVANCE_TESIS_HOOKLIGHT.pdf)
++ ### [Ver Diagrama de Flujo](docs/flujo.md)
+
++ ### [Ver Diagrama de Arquitectura](docs/arquitectura.md)
+
++ ### [Informe Tesis](docs/INFORME_PRIMER_AVANCE_TESIS_HOOKLIGHT.pdf)
+
++ ### [Dashboard de Metricas](http://grafana.hooklight.org/d/dashboard/hooklight-dashboard?orgId=1&refresh=5m)
 
 ---
 ![Hooklight Footer](assets/img/footer.png)

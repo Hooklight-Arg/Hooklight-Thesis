@@ -1,6 +1,10 @@
 # Sobre el Proyecto
 
-El proyecto consiste en poder tener un sistema automatico , que tenga la capacidad de crear simulaciones de **pishing** de forma **automatica** . El sistema se divide en dos partes , infrastructura en Docker y servicios externos , los cuales interactuan entre si para automatizar y el envio de mails mediante smpt
+El proyecto consiste en implementar un sistema automatico con capacidad de ejecutar simulaciones de **phishing** de forma controlada, medible y repetible. La solucion se divide en dos bloques: infraestructura en Docker y servicios externos, integrados para automatizar el ciclo completo de campanas y el envio de correos mediante SMTP.
+
+HookLight se posiciona como un servicio de entrenamiento en ciberseguridad orientado a organizaciones que necesitan reducir el riesgo humano. La plataforma permite planificar campanas, segmentar participantes, registrar interacciones y transformar eventos tecnicos en indicadores de gestion para equipos de seguridad, compliance y direccion.
+
+El valor diferencial del servicio esta en la trazabilidad operativa y la capacidad de mejora continua: cada simulacion entrega evidencia cuantificable para priorizar capacitaciones, medir evolucion por periodos y respaldar decisiones con datos reales.
 
 ---
 ### 🐋 Docker Infrastructura
@@ -29,7 +33,7 @@ end
 ```
 ---
 
-#### 📘 [ver explicación detallada de arquitectura ](/Docs/arquitectura.md)
+#### 📘 [ver explicacion detallada de arquitectura](arquitectura.md)
 
 
 --- 
@@ -67,7 +71,7 @@ La plataforma permite recrear de forma controlada ataques de ingeniería social 
 
 El sistema automatiza todo el ciclo de una campaña de phishing simulada mediante el uso de herramientas de **orquestación** y **monitoreo**. Primero se carga una lista de participantes, luego se envían correos electrónicos simulados que incluyen mecanismos de seguimiento como píxeles de apertura y enlaces de seguimiento. Cuando un usuario interactúa con el correo, el sistema registra eventos como la apertura del mensaje o el clic en el enlace.
 
-#### 📘 [ver explicación detallada de los flujos ](/Docs/flujo.md)
+#### 📘 [ver explicacion detallada de los flujos](flujo.md)
 ---
 ### ♒ Flujo De Automatización
 
@@ -127,7 +131,7 @@ De esta forma, Hooklight permite evaluar de forma práctica la vulnerabilidad hu
 ---
 ---
 #### Temas Relacionados.
-+ ###  [Ver Diagrama de Flujo](/Docs/flujo.md)
-+ ###  [Ver Diagrama de Arquitectura](/Docs/arquitectura.md)
-+ ###  [Investigacion sobre pishing](/Docs/Investigacion.md)
-+ ###  [Regresar](/README.md)
++ ### [Ver Diagrama de Flujo](flujo.md)
++ ### [Ver Diagrama de Arquitectura](arquitectura.md)
++ ### [Investigacion sobre pishing](Investigacion.md)
++ ### [Regresar](../README.md)

@@ -1,5 +1,5 @@
 # Diagrama de Arquitectura
-![Hooklight Logo](../assets/img/diagrama_photos/arquitectura.png)
+![Hooklight Logo](../assets/diagram_photos/arquitectura.png)
 
 ### Arquitectura del sistema Hooklight
 
@@ -305,7 +305,7 @@ style PGAdmin fill:#f4a261,color:black
 
 ---
 ## Temas Relacionados.
-+ ###  [Ver Diagrama de Flujo](/Docs/flujo.md)
-+ ###  [Investigacion sobre pishing](/Docs/Investigacion.md)
-+ ###  [Sobre el Proyecto](/Docs/proyecto.md)
-+ ###  [Regresar al menu principal](/README.md)
++ ### [Ver Diagrama de Flujo](flujo.md)
++ ### [Investigacion sobre pishing](Investigacion.md)
++ ### [Sobre el Proyecto](proyecto.md)
++ ### [Regresar al menu principal](../README.md)

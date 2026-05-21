@@ -1,6 +1,6 @@
 # Diagrama de flujo de trabajo del sistema
 
-![Hooklight Logo](../assets/img/diagrama_photos/flujo.png)
+![Hooklight Logo](../assets/diagram_photos/flujo.png)
 
 
 El workflow en conjunto empieza desde un formulario de consentimiento , el cual es procesado por el workflow 1
@@ -94,7 +94,7 @@ style DB fill: #468faf , color:black
 El __workflow 3__ tiene como objetivo activarse si el usuario decide darle click al enlace del correo , con esto se activa un webHook que registra el __evento Click__ , tambien se obtienen los datos anteriormente mencionado , esta metrica sirve para usarla con la metrica __open__ , significa , de los que abrieron el mail , cuantos le hicieron click. Finalmente se registra en una base de datos postgresSQL
 
 ## Temas Relacionados.
-+ ###  [Ver Diagrama de Arquitectura](/Docs/arquitectura.md)
-+ ###  [Investigacion sobre pishing](/Docs/Investigacion.md)
-+ ###  [Sobre el Proyecto](/Docs/proyecto.md)
-+ ###  [Regresar al menu principal](/README.md)
++ ### [Ver Diagrama de Arquitectura](arquitectura.md)
++ ### [Investigacion sobre pishing](Investigacion.md)
++ ### [Sobre el Proyecto](proyecto.md)
++ ### [Regresar al menu principal](../README.md)
