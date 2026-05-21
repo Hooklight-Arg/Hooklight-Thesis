@@ -7,7 +7,7 @@
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
-        -240,
+        -368,
         192
       ],
       "id": "3d1298aa-ccac-403e-b46f-b7b47177f56f"
@@ -15,10 +15,11 @@
     {
       "parameters": {
         "conditions": {
-          "string": [
+          "string": [],
+          "boolean": [
             {
-              "value1": "={{ $json.consent }}",
-              "value2": "true"
+              "value1": true,
+              "value2": true
             }
           ]
         }
@@ -27,23 +28,23 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 1,
       "position": [
-        352,
-        192
+        528,
+        256
       ],
       "id": "8718c518-84d9-40df-b9d3-a83715ba7f33"
     },
     {
       "parameters": {
-        "fromEmail": "Hooklight <postmaster@sandboxe38152d54b114928b3c2f4bb24b490ce.mailgun.org>",
+        "fromEmail": "Hooklight <no-reply@mg.hooklight.org>",
         "toEmail": "={{ $json.email }}",
         "subject": "Actualización de seguridad del Campus Virtual",
-        "html": "=<html>\n<head>\n  <meta charset=\"UTF-8\">\n  <title>Actualización de seguridad del Campus Virtual</title>\n</head>\n<body style=\"font-family: Arial, sans-serif; background:#f5f5f5; padding:30px; color:#222;\">\n  <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"max-width:700px; margin:auto; background:#ffffff; border-radius:10px; padding:30px;\">\n    <tr>\n      <td>\n        <p style=\"margin-top:0;\">\n          <img src=\"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS6K7dbod3sR5XjBX26x57wI9wi8IIkZ4eviw&s\" width=\"120\" alt=\"Logo institucional\">\n          <img src=\"https://www.hooklight.org/webhook/open?uid={{ encodeURIComponent($json.user_id) }}&cid={{ encodeURIComponent($json.campaign_id) }}\" width=\"1\" height=\"1\" style=\"display:none;\" alt=\"\">\n        </p>\n\n        <h2 style=\"color:#b22222; margin-bottom:20px;\">Actualización de seguridad del Campus Virtual</h2>\n\n        <p>Estimado/a <strong>{{$json.name}}</strong>,</p>\n\n        <p>\n          Detectamos un intento de acceso inusual asociado a tu cuenta institucional\n          del Campus Virtual. Como medida preventiva, se requiere una verificación de identidad.\n        </p>\n\n        <p>\n          Para evitar restricciones temporales sobre tu acceso, te solicitamos completar\n          la validación desde el siguiente enlace:\n        </p>\n\n        <p style=\"margin:30px 0;\">\n          <a href=\"https://www.hooklight.org/webhook/phishing-click?uid={{ encodeURIComponent($json.user_id) }}&cid={{ encodeURIComponent($json.campaign_id) }}\"\n             style=\"background:#b22222; color:#ffffff; text-decoration:none; padding:14px 22px; border-radius:8px; font-weight:bold; display:inline-block;\">\n            Validar cuenta\n          </a>\n        </p>\n\n        <p>\n          Si ya realizaste esta verificación recientemente, podés ignorar este mensaje.\n        </p>\n\n        <p>\n          Atentamente,<br>\n          <strong>Dirección de Sistemas</strong><br>\n          Universidad Tecnológica Nacional\n        </p>\n\n        <hr style=\"border:none; border-top:1px solid #ddd; margin:30px 0;\">\n\n        <p style=\"font-size:12px; color:#666; margin-bottom:0;\">\n          Este correo fue generado automáticamente por el sistema institucional.\n        </p>\n      </td>\n    </tr>\n  </table>\n</body>\n</html>"
+        "html": "=<html>\n<head>\n  <meta charset=\"UTF-8\">\n  <title>Actualización de seguridad del Campus Virtual</title>\n</head>\n<body style=\"font-family: Arial, sans-serif; background:#f5f5f5; padding:30px; color:#222;\">\n  <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"max-width:700px; margin:auto; background:#ffffff; border-radius:10px; padding:30px;\">\n    <tr>\n      <td>\n        <p style=\"margin-top:0;\">\n          <img src=\"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS6K7dbod3sR5XjBX26x57wI9wi8IIkZ4eviw&s\" width=\"120\" alt=\"Logo institucional\">\n            <img src=\"https://www.hooklight.org/webhook/open?uid={{ encodeURIComponent($('Code in JavaScript').item.json.user_id) }}&cid={{ encodeURIComponent($('Code in JavaScript').item.json.campaign_id) }}\"\n              width=\"1\"\n              height=\"1\"\n              alt=\"\"\n               style=\"width:1px;height:1px;opacity:0;border:0;\">\n        </p>\n\n        <h2 style=\"color:#b22222; margin-bottom:20px;\">Actualización de seguridad del Campus Virtual</h2>\n\n        <p>Estimado/a <strong>{{$json.name}}</strong>,</p>\n\n        <p>\n          Detectamos un intento de acceso inusual asociado a tu cuenta institucional\n          del Campus Virtual. Como medida preventiva, se requiere una verificación de identidad.\n        </p>\n\n        <p>\n          Para evitar restricciones temporales sobre tu acceso, te solicitamos completar\n          la validación desde el siguiente enlace:\n        </p>\n\n        <p style=\"margin:30px 0;\">\n          <a href=\"https://www.hooklight.org/webhook/phishing-click?uid={{ encodeURIComponent($json.user_id) }}&cid={{ encodeURIComponent($json.campaign_id) }}\"\n             style=\"background:#b22222; color:#ffffff; text-decoration:none; padding:14px 22px; border-radius:8px; font-weight:bold; display:inline-block;\">\n            Validar cuenta\n          </a>\n        </p>\n\n        <p>\n          Si ya realizaste esta verificación recientemente, podés ignorar este mensaje.\n        </p>\n\n        <p>\n          Atentamente,<br>\n          <strong>Dirección de Sistemas</strong><br>\n          Universidad Tecnológica Nacional\n        </p>\n\n        <hr style=\"border:none; border-top:1px solid #ddd; margin:30px 0;\">\n\n        <p style=\"font-size:12px; color:#666; margin-bottom:0;\">\n          Este correo fue generado automáticamente por el sistema institucional.\n        </p>\n      </td>\n    </tr>\n  </table>\n</body>\n</html>"
       },
       "type": "n8n-nodes-base.mailgun",
       "typeVersion": 1,
       "position": [
-        592,
-        176
+        1040,
+        240
       ],
       "id": "d21b176b-2691-4551-98eb-568d0a027cd8",
       "name": "Mailgun",
@@ -75,7 +76,7 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        -48,
+        -176,
         192
       ],
       "id": "992358ea-9001-459b-9011-30d1f97f12af",
@@ -89,16 +90,250 @@
     },
     {
       "parameters": {
-        "jsCode": "function uuidv4() {\n  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {\n    const r = Math.random() * 16 | 0;\n    const v = c === 'x' ? r : (r & 0x3 | 0x8);\n    return v.toString(16);\n  });\n}\n\nreturn items.map(item => {\n  return {\n    json: {\n      ...item.json,\n      user_id: uuidv4(),\n      campaign_id: 'camp01'\n    }\n  };\n});"
+        "jsCode": "function uuidv4() {\n  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {\n    const r = Math.random() * 16 | 0;\n    const v = c === 'x' ? r : (r & 0x3 | 0x8);\n    return v.toString(16);\n  });\n}\n\nreturn items.map(item => {\n  return {\n    json: {\n      ...item.json,\n      email: item.json.email || item.json.correo || item.json.mail || '',\n      province: item.json.province || item.json.provincia || '',\n      department: item.json.department || item.json.departamento || '',\n      user_id: item.json.user_id || uuidv4(),\n      campaign_id: item.json.campaign_id || 'camp01'\n    }\n  };\n});\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        160,
+        32,
         192
       ],
       "id": "efab1bfd-0ae3-4e22-aa8a-4ac6d6c32c80",
       "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "mode": "chooseBranch"
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        864,
+        -96
+      ],
+      "id": "f47361e2-9965-4abc-9267-736de9bd48da",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "campaigns",
+          "mode": "list",
+          "cachedResultName": "campaigns"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "is_active": true,
+            "id": "={{ $json.campaign_id }}",
+            "name": "={{ 'Campaña ' + $json.campaign_id }}",
+            "start_date": "={{ $now.minus({ days: 1 }).toISO() }}",
+            "end_date": "={{ $now.plus({ days: 30 }).toISO() }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": true,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "is_active",
+              "displayName": "is_active",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "boolean",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "start_date",
+              "displayName": "start_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "end_date",
+              "displayName": "end_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        208,
+        256
+      ],
+      "id": "f176eb3a-fdec-440a-9d9b-24fbab67dde6",
+      "name": "Upsert Campaign",
+      "credentials": {
+        "postgres": {
+          "id": "DWD2gO6TUKWYVtJd",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "participants",
+          "mode": "list",
+          "cachedResultName": "participants"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "consent": "={{ $('Code in JavaScript').item.json.consent }}",
+            "id": "={{ $('Code in JavaScript').item.json.user_id }}",
+            "email": "={{ $('Code in JavaScript').item.json.email }}",
+            "name": "={{ $('Code in JavaScript').item.json.name }}",
+            "province": "={{ $('Code in JavaScript').item.json.province }}",
+            "department": "={{ $('Code in JavaScript').item.json.department }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": true,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "consent",
+              "displayName": "consent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "boolean",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "province",
+              "displayName": "province",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false,
+              "removed": false
+            },
+            {
+              "id": "department",
+              "displayName": "department",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        368,
+        256
+      ],
+      "id": "9bc504d7-5c4f-4022-860c-b1186a184543",
+      "name": "Upsert Participant",
+      "credentials": {
+        "postgres": {
+          "id": "DWD2gO6TUKWYVtJd",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO events (user_id, campaign_id, event_type, event_time, ip, user_agent, country)\nSELECT\n  '{{ $(\"Code in JavaScript\").item.json.user_id }}'::uuid,\n  '{{ $(\"Code in JavaScript\").item.json.campaign_id }}',\n  'sent',\n  NOW() AT TIME ZONE 'America/Argentina/Buenos_Aires',\n  '',\n  'n8n-mailgun',\n  ''\nWHERE NOT EXISTS (\n  SELECT 1\n  FROM events\n  WHERE user_id = '{{ $(\"Code in JavaScript\").item.json.user_id }}'::uuid\n    AND campaign_id = '{{ $(\"Code in JavaScript\").item.json.campaign_id }}'\n    AND event_type = 'sent'\n);\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        720,
+        240
+      ],
+      "id": "e3df4c57-e8f9-4178-bad4-eb3f83570b4b",
+      "name": "Execute a SQL query",
+      "credentials": {
+        "postgres": {
+          "id": "DWD2gO6TUKWYVtJd",
+          "name": "Postgres account"
+        }
+      }
     }
   ],
   "pinData": {},
@@ -118,7 +353,7 @@
       "main": [
         [
           {
-            "node": "Mailgun",
+            "node": "Execute a SQL query",
             "type": "main",
             "index": 0
           }
@@ -140,9 +375,63 @@
       "main": [
         [
           {
+            "node": "Upsert Campaign",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mailgun": {
+      "main": [
+        []
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Mailgun",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upsert Campaign": {
+      "main": [
+        [
+          {
+            "node": "Upsert Participant",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upsert Participant": {
+      "main": [
+        [
+          {
             "node": "IF Consent",
             "type": "main",
             "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
           }
         ]
       ]
@@ -154,7 +443,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "039f8b4b-eadd-4857-9f71-17ff315f9e26",
+  "versionId": "84f711ef-a484-4879-b49b-d53e07bfbe3f",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "512f1b25e6107beedf5aa4a44fded5de9af8071d22a37f48a67d3cff88b7cc17"
