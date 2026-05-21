@@ -1,7 +1,5 @@
--- Vista: metricas unicas por campana (mas confiables para analisis humano)
-CREATE OR REPLACE VIEW campaign_unique_metrics AS
-SELECT 
-  campaign_id,
+-- Embudo global del sistema (usuarios unicos)
+SELECT
   COUNT(DISTINCT CASE WHEN event_type = 'sent' THEN user_id END) AS sent_unicos,
   COUNT(DISTINCT CASE WHEN event_type = 'open' THEN user_id END) AS opens_unicos,
   COUNT(DISTINCT CASE WHEN event_type = 'click' THEN user_id END) AS clicks_unicos,
@@ -14,6 +12,5 @@ SELECT
     COUNT(DISTINCT CASE WHEN event_type = 'click' THEN user_id END) * 100.0 /
     NULLIF(COUNT(DISTINCT CASE WHEN event_type = 'open' THEN user_id END), 0),
     2
-  ) AS tasa_vulnerabilidad
-FROM events
-GROUP BY campaign_id;
+  ) AS click_to_open_unico_percent
+FROM events;
