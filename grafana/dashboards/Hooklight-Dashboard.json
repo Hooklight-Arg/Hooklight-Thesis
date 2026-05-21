@@ -1,0 +1,1538 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      },
+      {
+        "datasource": {
+          "type": "postgres",
+          "uid": "hooklight-postgres"
+        },
+        "enable": true,
+        "hide": false,
+        "iconColor": "rgba(255, 152, 0, 1)",
+        "name": "Hitos de campana",
+        "rawQuery": true,
+        "rawSql": "SELECT start_date AS time, CONCAT('Inicio campana: ', name) AS text, 'hito,campana,inicio' AS tags\nFROM campaigns\nWHERE start_date IS NOT NULL\nUNION ALL\nSELECT end_date AS time, CONCAT('Fin campana: ', name) AS text, 'hito,campana,fin' AS tags\nFROM campaigns\nWHERE end_date IS NOT NULL;",
+        "target": {
+          "limit": 100,
+          "matchAny": true,
+          "tags": [
+            "hito"
+          ]
+        },
+        "type": "tags"
+      }
+    ]
+  },
+  "description": "Panel ejecutivo para monitorear el riesgo humano frente a phishing, visualizar su evolución en el tiempo y priorizar acciones de intervención por campaña, territorio y canal.",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 2,
+  "id": 8,
+  "links": [],
+  "panels": [
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "hooklight-postgres"
+      },
+      "description": "Índice general de exposición al phishing. Más alto = mayor riesgo",
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 1,
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 8
+              },
+              {
+                "color": "orange",
+                "value": 15
+              },
+              {
+                "color": "red",
+                "value": 25
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 8,
+        "x": 0,
+        "y": 0
+      },
+      "id": 20,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "value",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.1.0",
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "WITH base AS (\n  SELECT ef.event_type, ef.user_id\n  FROM event_facts ef\n  WHERE ef.event_type IN ('sent','open','click')\n    AND $__timeFilter(ef.event_time)\n    AND ('${campaign:raw}'='__all' OR ef.campaign_id::text='${campaign:raw}')\nAND ('${country:raw}'='__all' OR ef.country_norm='${country:raw}')\nAND ('${department:raw}'='__all' OR ef.department_norm='${department:raw}')\n), rates AS (\n  SELECT\n    COALESCE((COUNT(DISTINCT CASE WHEN event_type='click' THEN user_id END)::numeric / NULLIF(COUNT(DISTINCT CASE WHEN event_type='sent' THEN user_id END),0)) * 100,0) AS click_rate,\n    COALESCE((COUNT(DISTINCT CASE WHEN event_type='click' THEN user_id END)::numeric / NULLIF(COUNT(DISTINCT CASE WHEN event_type='open' THEN user_id END),0)) * 100,0) AS ctor,\n    COALESCE((COUNT(DISTINCT CASE WHEN event_type='open' THEN user_id END)::numeric / NULLIF(COUNT(DISTINCT CASE WHEN event_type='sent' THEN user_id END),0)) * 100,0) AS open_rate\n  FROM base\n)\nSELECT ROUND(LEAST(100, GREATEST(0, 0.55*click_rate + 0.35*ctor + 0.10*(100-open_rate))), 1) AS valor\nFROM rates;",
+          "refId": "A"
+        }
+      ],
+      "title": "Indice de riesgo humano (0-100)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "hooklight-postgres"
+      },
+      "description": "Porcentaje de personas alcanzadas que hicieron click en enlaces del correo",
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 1,
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 4
+              },
+              {
+                "color": "orange",
+                "value": 8
+              },
+              {
+                "color": "red",
+                "value": 12
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 8,
+        "x": 8,
+        "y": 0
+      },
+      "id": 13,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "value",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.1.0",
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "WITH base AS (\n  SELECT ef.event_type, ef.user_id\n  FROM event_facts ef\n  WHERE ef.event_type IN ('sent','click')\n    AND $__timeFilter(ef.event_time)\n    AND ('${campaign:raw}'='__all' OR ef.campaign_id::text='${campaign:raw}')\nAND ('${country:raw}'='__all' OR ef.country_norm='${country:raw}')\nAND ('${department:raw}'='__all' OR ef.department_norm='${department:raw}')\n)\nSELECT COALESCE(ROUND((\n  COUNT(DISTINCT CASE WHEN event_type='click' THEN user_id END)::numeric /\n  NULLIF(COUNT(DISTINCT CASE WHEN event_type='sent' THEN user_id END), 0)\n) * 100, 1), 0) AS valor\nFROM base;",
+          "refId": "A"
+        }
+      ],
+      "title": "Tasa de click (%)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "hooklight-postgres"
+      },
+      "description": "Cambio de la tasa de click frente al período anterior. Valor negativo = mejora",
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 2,
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0
+              },
+              {
+                "color": "orange",
+                "value": 2
+              },
+              {
+                "color": "red",
+                "value": 4
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 8,
+        "x": 16,
+        "y": 0
+      },
+      "id": 16,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "value",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.1.0",
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "WITH bounds AS (\n  SELECT $__timeFrom()::timestamptz AS from_ts, $__timeTo()::timestamptz AS to_ts\n), periods AS (\n  SELECT from_ts, to_ts, from_ts - (to_ts - from_ts) AS prev_from, from_ts AS prev_to\n  FROM bounds\n), curr AS (\n  SELECT\n    COUNT(DISTINCT CASE WHEN ef.event_type='click' THEN ef.user_id END)::numeric AS click_users,\n    COUNT(DISTINCT CASE WHEN ef.event_type='sent' THEN ef.user_id END)::numeric AS sent_users\n  FROM event_facts ef\n  CROSS JOIN periods p\n  WHERE ef.event_type IN ('sent','click')\n    AND ef.event_time BETWEEN p.from_ts AND p.to_ts\n    AND ('${campaign:raw}'='__all' OR ef.campaign_id::text='${campaign:raw}')\nAND ('${country:raw}'='__all' OR ef.country_norm='${country:raw}')\nAND ('${department:raw}'='__all' OR ef.department_norm='${department:raw}')\n), prev AS (\n  SELECT\n    COUNT(DISTINCT CASE WHEN ef.event_type='click' THEN ef.user_id END)::numeric AS click_users,\n    COUNT(DISTINCT CASE WHEN ef.event_type='sent' THEN ef.user_id END)::numeric AS sent_users\n  FROM event_facts ef\n  CROSS JOIN periods p\n  WHERE ef.event_type IN ('sent','click')\n    AND ef.event_time BETWEEN p.prev_from AND p.prev_to\n    AND ('${campaign:raw}'='__all' OR ef.campaign_id::text='${campaign:raw}')\nAND ('${country:raw}'='__all' OR ef.country_norm='${country:raw}')\nAND ('${department:raw}'='__all' OR ef.department_norm='${department:raw}')\n)\nSELECT ROUND(\n  (COALESCE(curr.click_users / NULLIF(curr.sent_users,0),0) * 100)\n  -\n  (COALESCE(prev.click_users / NULLIF(prev.sent_users,0),0) * 100)\n, 2) AS valor\nFROM curr, prev;",
+          "refId": "A"
+        }
+      ],
+      "title": "Evolución del riesgo vs Período anterior",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "hooklight-postgres"
+      },
+      "description": "Cantidad de personas alcanzadas por las campañas en el período seleccionado",
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 0,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 8,
+        "x": 0,
+        "y": 3
+      },
+      "id": 1,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "text": {},
+        "textMode": "value",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.1.0",
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT COUNT(*) AS valor\nFROM event_facts ef\nWHERE ef.event_type='sent'\n  AND $__timeFilter(ef.event_time)\n  AND ('${campaign:raw}'='__all' OR ef.campaign_id::text='${campaign:raw}')\nAND ('${country:raw}'='__all' OR ef.country_norm='${country:raw}')\nAND ('${department:raw}'='__all' OR ef.department_norm='${department:raw}');",
+          "refId": "A"
+        }
+      ],
+      "title": "Alcance total (envios)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "hooklight-postgres"
+      },
+      "description": "Usuarios únicos que abrieron al menos un correo de simulación",
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 0,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 8,
+        "x": 8,
+        "y": 3
+      },
+      "id": 2,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "value",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.1.0",
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT COUNT(DISTINCT ef.user_id) AS valor\nFROM event_facts ef\nWHERE ef.event_type='open'\n  AND $__timeFilter(ef.event_time)\n  AND ('${campaign:raw}'='__all' OR ef.campaign_id::text='${campaign:raw}')\nAND ('${country:raw}'='__all' OR ef.country_norm='${country:raw}')\nAND ('${browser:raw}'='__all' OR ef.browser_family='${browser:raw}')\nAND ('${department:raw}'='__all' OR ef.department_norm='${department:raw}');",
+          "refId": "A"
+        }
+      ],
+      "title": "Interaccion (aperturas unicas)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "hooklight-postgres"
+      },
+      "description": "Porcentaje de personas alcanzadas que abrieron el correo",
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 1,
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 25
+              },
+              {
+                "color": "green",
+                "value": 40
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 8,
+        "x": 16,
+        "y": 3
+      },
+      "id": 12,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "value",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.1.0",
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "WITH base AS (\n  SELECT ef.event_type, ef.user_id\n  FROM event_facts ef\n  WHERE ef.event_type IN ('sent','open')\n    AND $__timeFilter(ef.event_time)\n    AND ('${campaign:raw}'='__all' OR ef.campaign_id::text='${campaign:raw}')\nAND ('${country:raw}'='__all' OR ef.country_norm='${country:raw}')\nAND ('${department:raw}'='__all' OR ef.department_norm='${department:raw}')\n)\nSELECT COALESCE(ROUND((\n  COUNT(DISTINCT CASE WHEN event_type='open' THEN user_id END)::numeric /\n  NULLIF(COUNT(DISTINCT CASE WHEN event_type='sent' THEN user_id END), 0)\n) * 100, 1), 0) AS valor\nFROM base;",
+          "refId": "A"
+        }
+      ],
+      "title": "Tasa de apertura (%)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "hooklight-postgres"
+      },
+      "description": "Total de personas que hicieron click en el período seleccionado",
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 0,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 25
+              },
+              {
+                "color": "orange",
+                "value": 50
+              },
+              {
+                "color": "red",
+                "value": 100
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 8,
+        "x": 0,
+        "y": 6
+      },
+      "id": 3,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "value",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.1.0",
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT COUNT(DISTINCT ef.user_id) AS valor\nFROM event_facts ef\nWHERE ef.event_type='click'\n  AND $__timeFilter(ef.event_time)\n  AND ('${campaign:raw}'='__all' OR ef.campaign_id::text='${campaign:raw}')\nAND ('${country:raw}'='__all' OR ef.country_norm='${country:raw}')\nAND ('${browser:raw}'='__all' OR ef.browser_family='${browser:raw}')\nAND ('${department:raw}'='__all' OR ef.department_norm='${department:raw}');",
+          "refId": "A"
+        }
+      ],
+      "title": "Usuarios expuestos",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "hooklight-postgres"
+      },
+      "description": "Personas que prestaron su consentimiento para participar en simulaciones y mediciones",
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 0,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 8,
+        "x": 8,
+        "y": 6
+      },
+      "id": 6,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "value",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.1.0",
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT COUNT(*) AS valor FROM participants WHERE consent = true;",
+          "refId": "A"
+        }
+      ],
+      "title": "Participantes",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "hooklight-postgres"
+      },
+      "description": "Cantidad de campañas en ejecución actualmente",
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 0,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 8,
+        "x": 16,
+        "y": 6
+      },
+      "id": 5,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "value",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.1.0",
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT COUNT(*) AS valor FROM campaigns WHERE is_active = true;",
+          "refId": "A"
+        }
+      ],
+      "title": "Campañas activas",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "hooklight-postgres"
+      },
+      "description": "Tendencia diaria para ver si el riesgo sube, baja o se mantiene",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "Cantidad de eventos",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 18,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Enviados"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#3CB44B",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Aperturas"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#FFD43B",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Clicks"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#E03131",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 9
+      },
+      "id": 7,
+      "options": {
+        "legend": {
+          "calcs": [
+            "last",
+            "max",
+            "mean"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "sortBy": "Name",
+          "sortDesc": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "pluginVersion": "11.1.0",
+      "targets": [
+        {
+          "format": "time_series",
+          "rawSql": "SELECT\n  date_trunc('day', ef.event_time) AS time,\n  CASE\n    WHEN ef.event_type='sent' THEN 'Enviados'\n    WHEN ef.event_type='open' THEN 'Aperturas'\n    WHEN ef.event_type='click' THEN 'Clicks'\n  END AS metric,\n  COUNT(*) AS value\nFROM event_facts ef\nWHERE ef.event_type IN ('sent','open','click')\n  AND $__timeFilter(ef.event_time)\n  AND ('${campaign:raw}'='__all' OR ef.campaign_id::text='${campaign:raw}')\nAND ('${country:raw}'='__all' OR ef.country_norm='${country:raw}')\nAND ('${browser:raw}'='__all' OR ef.browser_family='${browser:raw}')\nAND ('${department:raw}'='__all' OR ef.department_norm='${department:raw}')\nGROUP BY 1,2\nORDER BY 1;",
+          "refId": "A"
+        }
+      ],
+      "title": "Evolución diaria de envíos, aperturas y clicks",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "hooklight-postgres"
+      },
+      "description": "Ranking de campañas con más exposición y su variación semanal",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "center",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 12,
+        "x": 12,
+        "y": 9
+      },
+      "id": 19,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": false,
+            "displayName": "Click Rate semana (%)"
+          }
+        ]
+      },
+      "pluginVersion": "11.1.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "hooklight-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH weekly AS (\n  SELECT\n    date_trunc('week', ef.event_time) AS week,\n    ef.campaign_id,\n    MAX(ef.campaign_name) AS campaign_name,\n    COUNT(DISTINCT CASE WHEN ef.event_type='click' THEN ef.user_id END)::numeric AS click_users,\n    COUNT(DISTINCT CASE WHEN ef.event_type='sent' THEN ef.user_id END)::numeric AS sent_users\n  FROM event_facts ef\n  WHERE ef.event_type IN ('sent','click')\n    AND ef.event_time >= NOW() - INTERVAL '90 days'\n    AND ('${campaign:raw}'='__all' OR ef.campaign_id::text='${campaign:raw}')\n    AND ('${country:raw}'='__all' OR ef.country_norm='${country:raw}')\n    AND ('${department:raw}'='__all' OR ef.department_norm='${department:raw}')\n  GROUP BY 1,2\n), rates AS (\n  SELECT\n    week,\n    campaign_id,\n    COALESCE(campaign_name, campaign_id) AS campaign_name,\n    ROUND(COALESCE((click_users / NULLIF(sent_users,0)) * 100, 0), 2) AS click_rate,\n    LAG(ROUND(COALESCE((click_users / NULLIF(sent_users,0)) * 100, 0), 2)) OVER (PARTITION BY campaign_id ORDER BY week) AS prev_click_rate,\n    click_users\n  FROM weekly\n), last_week AS (SELECT MAX(week) AS w FROM rates)\nSELECT\n  r.campaign_name AS \"Campaña\",\n  r.click_users AS \"Usuarios expuestos (semana)\",\n  r.click_rate AS \"Click Rate semana (%)\",\n  ROUND(r.click_rate - COALESCE(r.prev_click_rate, 0), 2) AS \"Variacion semanal (pp)\"\nFROM rates r\nCROSS JOIN last_week lw\nWHERE r.week = lw.w\nORDER BY 3 DESC\nLIMIT 10;",
+          "refId": "A",
+          "sql": {
+            "columns": [
+              {
+                "parameters": [],
+                "type": "function"
+              }
+            ],
+            "groupBy": [
+              {
+                "property": {
+                  "type": "string"
+                },
+                "type": "groupBy"
+              }
+            ],
+            "limit": 50
+          }
+        }
+      ],
+      "title": "Campañas con mayor riesgo (semanal)",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "hooklight-postgres"
+      },
+      "description": "Vista operativa para identificar dónde actuar primero",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "center",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 12,
+        "x": 12,
+        "y": 13
+      },
+      "id": 21,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "valor"
+          }
+        ]
+      },
+      "pluginVersion": "11.1.0",
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT\n  COALESCE(ef.campaign_name, ef.campaign_id) AS campana,\n  COUNT(DISTINCT CASE WHEN ef.event_type='sent' THEN ef.user_id END) AS usuarios_alcanzados,\n  COUNT(DISTINCT CASE WHEN ef.event_type='click' THEN ef.user_id END) AS usuarios_expuestos,\n  ROUND(COALESCE((\n    COUNT(DISTINCT CASE WHEN ef.event_type='click' THEN ef.user_id END)::numeric /\n    NULLIF(COUNT(DISTINCT CASE WHEN ef.event_type='sent' THEN ef.user_id END),0)\n  ) * 100,0), 2) AS tasa_click_pct\nFROM event_facts ef\nWHERE ef.event_type IN ('sent','click')\n  AND $__timeFilter(ef.event_time)\n  AND ('${campaign:raw}'='__all' OR ef.campaign_id::text='${campaign:raw}')\nAND ('${country:raw}'='__all' OR ef.country_norm='${country:raw}')\nAND ('${department:raw}'='__all' OR ef.department_norm='${department:raw}')\nGROUP BY 1\nORDER BY 4 DESC, 3 DESC\nLIMIT 15;",
+          "refId": "A"
+        }
+      ],
+      "title": "Prioridad de intervención por campañas",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "hooklight-postgres"
+      },
+      "description": "Mapa de zonas con mayor concentración de personas expuestas",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 17
+      },
+      "id": 10,
+      "options": {
+        "basemap": {
+          "config": {},
+          "name": "Layer 0",
+          "type": "default"
+        },
+        "controls": {
+          "mouseWheelZoom": true,
+          "showAttribution": true,
+          "showDebug": false,
+          "showMeasure": false,
+          "showScale": false,
+          "showZoom": true
+        },
+        "layers": [
+          {
+            "config": {
+              "showLegend": true,
+              "style": {
+                "color": {
+                  "fixed": "dark-green"
+                },
+                "opacity": 0.4,
+                "rotation": {
+                  "fixed": 0,
+                  "max": 360,
+                  "min": -360,
+                  "mode": "mod"
+                },
+                "size": {
+                  "field": "valor",
+                  "fixed": 5,
+                  "max": 15,
+                  "min": 2
+                },
+                "symbol": {
+                  "fixed": "img/icons/marker/circle.svg",
+                  "mode": "fixed"
+                },
+                "symbolAlign": {
+                  "horizontal": "center",
+                  "vertical": "center"
+                },
+                "text": {
+                  "field": "valor",
+                  "fixed": "",
+                  "mode": "field"
+                },
+                "textConfig": {
+                  "fontSize": 12,
+                  "offsetX": 0,
+                  "offsetY": 0,
+                  "textAlign": "center",
+                  "textBaseline": "middle"
+                }
+              }
+            },
+            "filterData": {
+              "id": "byRefId",
+              "options": "A"
+            },
+            "location": {
+              "latitude": "latitude",
+              "longitude": "longitude",
+              "mode": "coords"
+            },
+            "name": "Layer 1",
+            "tooltip": true,
+            "type": "markers"
+          }
+        ],
+        "tooltip": {
+          "mode": "details"
+        },
+        "view": {
+          "allLayers": true,
+          "id": "coords",
+          "lat": -34.815318,
+          "lon": -72.476608,
+          "zoom": 5.69
+        }
+      },
+      "pluginVersion": "11.1.0",
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT\n  g.department,\n  g.lat::double precision AS latitude,\n  g.lon::double precision AS longitude,\n  COALESCE(d.exposed_users, 0)::double precision AS valor\nFROM mendoza_departments_geo g\nLEFT JOIN (\n  SELECT\n    ef.department_norm AS department,\n    COUNT(DISTINCT ef.user_id) AS exposed_users\n  FROM event_facts ef\n  WHERE ef.event_type='click'\n    AND ef.province_norm ILIKE 'Mendoza'\n    AND $__timeFilter(ef.event_time)\n    AND ('${campaign:raw}'='__all' OR ef.campaign_id::text='${campaign:raw}')\nAND ('${country:raw}'='__all' OR ef.country_norm='${country:raw}')\nAND ('${browser:raw}'='__all' OR ef.browser_family='${browser:raw}')\nAND ('${department:raw}'='__all' OR ef.department_norm='${department:raw}')\n  GROUP BY 1\n) d ON LOWER(g.department) = LOWER(d.department)\nORDER BY valor DESC;",
+          "refId": "A"
+        }
+      ],
+      "title": "Mapa de exposición territorial",
+      "type": "geomap"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "hooklight-postgres"
+      },
+      "description": "Distribución de personas expuestas por país",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "fillOpacity": 80,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineWidth": 1,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "links": [
+            {
+              "title": "Filtrar por este pais",
+              "url": "/d/ffml861giqoe8f/hooklight-executive-dashboard?orgId=1&var-country=${__value.text}&${__all_variables}"
+            }
+          ],
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 20
+              },
+              {
+                "color": "orange",
+                "value": 40
+              },
+              {
+                "color": "red",
+                "value": 70
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 17
+      },
+      "id": 8,
+      "options": {
+        "barRadius": 0,
+        "barWidth": 0.97,
+        "fullHighlight": false,
+        "groupWidth": 0.7,
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "orientation": "horizontal",
+        "showValue": "auto",
+        "stacking": "none",
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "xTickLabelRotation": 0,
+        "xTickLabelSpacing": 0
+      },
+      "pluginVersion": "11.1.0",
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT\n  ef.country_norm AS country,\n  COUNT(DISTINCT CASE WHEN ef.event_type='click' THEN ef.user_id END) AS exposed_users\nFROM event_facts ef\nWHERE ef.event_type = 'click'\n  AND $__timeFilter(ef.event_time)\n  AND ('${campaign:raw}'='__all' OR ef.campaign_id::text='${campaign:raw}')\n  AND ('${browser:raw}'='__all' OR ef.browser_family='${browser:raw}')\n  AND ('${department:raw}'='__all' OR ef.department_norm='${department:raw}')\nGROUP BY 1\nORDER BY 2 DESC;",
+          "refId": "A"
+        }
+      ],
+      "title": "Exposición por país",
+      "type": "barchart"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "hooklight-postgres"
+      },
+      "description": "Distribución de personas expuestas por departamento (Mendoza)",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "fillOpacity": 80,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineWidth": 1,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "links": [
+            {
+              "title": "Filtrar por este departamento",
+              "url": "/d/ffml861giqoe8f/hooklight-executive-dashboard?orgId=1&var-department=${__value.text}&${__all_variables}"
+            }
+          ],
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 17
+      },
+      "id": 11,
+      "options": {
+        "barRadius": 0,
+        "barWidth": 0.97,
+        "displayLabels": [
+          "percent",
+          "name",
+          "value"
+        ],
+        "fullHighlight": false,
+        "groupWidth": 0.7,
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false,
+          "values": []
+        },
+        "orientation": "horizontal",
+        "pieType": "pie",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/.*/",
+          "values": false
+        },
+        "showValue": "auto",
+        "stacking": "none",
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "xTickLabelRotation": 0,
+        "xTickLabelSpacing": 0
+      },
+      "pluginVersion": "11.1.0",
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT\n  ef.department_norm AS department,\n  COUNT(DISTINCT CASE WHEN ef.event_type='click' THEN ef.user_id END) AS exposed_users\nFROM event_facts ef\nWHERE ef.event_type='click'\n  AND $__timeFilter(ef.event_time)\n  AND ef.province_norm ILIKE 'Mendoza'\n  AND ('${campaign:raw}'='__all' OR ef.campaign_id::text='${campaign:raw}')\n  AND ('${country:raw}'='__all' OR ef.country_norm='${country:raw}')\n  AND ('${browser:raw}'='__all' OR ef.browser_family='${browser:raw}')\nGROUP BY 1\nORDER BY 2 DESC;",
+          "refId": "A"
+        }
+      ],
+      "title": "Exposición por departamento (Mendoza)",
+      "type": "barchart"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "hooklight-postgres"
+      },
+      "description": "Navegadores/dispositivos con mayor nivel de exposición",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "center",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 25
+      },
+      "id": 9,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "valor"
+          }
+        ]
+      },
+      "pluginVersion": "11.1.0",
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT\n  ef.browser_family AS navegador,\n  COUNT(DISTINCT CASE WHEN ef.event_type='click' THEN ef.user_id END) AS usuarios_expuestos,\n  COUNT(*) AS eventos_totales\nFROM event_facts ef\nWHERE $__timeFilter(ef.event_time)\n  AND ('${campaign:raw}'='__all' OR ef.campaign_id::text='${campaign:raw}')\n  AND ('${country:raw}'='__all' OR ef.country_norm='${country:raw}')\n  AND ('${department:raw}'='__all' OR ef.department_norm='${department:raw}')\nGROUP BY 1\nORDER BY 2 DESC\nLIMIT 8;",
+          "refId": "A"
+        }
+      ],
+      "title": "Navegadores mas expuestos",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "hooklight-postgres"
+      },
+      "description": "Indicadores de completitud y consistencia de los datos medidos",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "center",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 25
+      },
+      "id": 18,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "valor"
+          }
+        ]
+      },
+      "pluginVersion": "11.1.0",
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "WITH scope AS (\n  SELECT *\n  FROM event_facts ef\n  WHERE $__timeFilter(ef.event_time)\n    AND ('${campaign:raw}'='__all' OR ef.campaign_id::text='${campaign:raw}')\nAND ('${country:raw}'='__all' OR ef.country_norm='${country:raw}')\nAND ('${browser:raw}'='__all' OR ef.browser_family='${browser:raw}')\nAND ('${department:raw}'='__all' OR ef.department_norm='${department:raw}')\n), totals AS (SELECT COUNT(*)::numeric AS total FROM scope)\nSELECT\n  'country N/A (%)' AS indicador,\n  ROUND(COALESCE((COUNT(*) FILTER (WHERE country_norm='N/A')::numeric / NULLIF((SELECT total FROM totals),0)) * 100,0), 2) AS valor\nFROM scope\nUNION ALL\nSELECT\n  'browser N/A (%)' AS indicador,\n  ROUND(COALESCE((COUNT(*) FILTER (WHERE browser_family='Otro / N/A')::numeric / NULLIF((SELECT total FROM totals),0)) * 100,0), 2) AS valor\nFROM scope\nUNION ALL\nSELECT\n  'eventos fuera de ventana campa?a (%)' AS indicador,\n  ROUND(COALESCE((COUNT(*) FILTER (WHERE out_of_campaign_window = true)::numeric / NULLIF((SELECT total FROM totals),0)) * 100,0), 2) AS valor\nFROM scope;",
+          "refId": "A"
+        }
+      ],
+      "title": "Calidad de datos",
+      "type": "table"
+    }
+  ],
+  "refresh": "5m",
+  "schemaVersion": 39,
+  "tags": [
+    "hooklight",
+    "phishing",
+    "executive",
+    "sales-demo",
+    "v24"
+  ],
+  "templating": {
+    "list": [
+      {
+        "allValue": "__all",
+        "current": {
+          "selected": false,
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": {
+          "type": "postgres",
+          "uid": "hooklight-postgres"
+        },
+        "definition": "",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Campana",
+        "multi": false,
+        "name": "campaign",
+        "options": [],
+        "query": "SELECT DISTINCT campaign_id::text FROM event_facts WHERE campaign_id IS NOT NULL ORDER BY 1",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "allValue": "__all",
+        "current": {
+          "selected": false,
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": {
+          "type": "postgres",
+          "uid": "hooklight-postgres"
+        },
+        "definition": "",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Pais",
+        "multi": false,
+        "name": "country",
+        "options": [],
+        "query": "SELECT DISTINCT country_norm FROM event_facts ORDER BY 1",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "allValue": "__all",
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": {
+          "type": "postgres",
+          "uid": "hooklight-postgres"
+        },
+        "definition": "",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Navegador",
+        "multi": false,
+        "name": "browser",
+        "options": [],
+        "query": "SELECT DISTINCT browser_family FROM event_facts ORDER BY 1",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "allValue": "__all",
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": {
+          "type": "postgres",
+          "uid": "hooklight-postgres"
+        },
+        "definition": "",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Departamento",
+        "multi": false,
+        "name": "department",
+        "options": [],
+        "query": "SELECT DISTINCT department_norm FROM event_facts ORDER BY 1",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-30d",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "America/Argentina/Mendoza",
+  "title": "Hooklight Dashboard",
+  "uid": "dashboard",
+  "version": 5,
+  "weekStart": "monday"
+}
